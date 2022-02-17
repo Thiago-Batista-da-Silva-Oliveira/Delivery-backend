@@ -40,7 +40,7 @@ const destLength = dest.length
 let delivery = null
 let results = []
 
-
+/*
 for(let i =0; i<destLength; i++) {
   
   const destJoinend = dest.join('|').normalize('NFD').replace(/[\u0300-\u036f]/g, "")
@@ -65,7 +65,56 @@ for(let i =0; i<destLength; i++) {
   dest.splice(index,1)
 
 }
+*/
 
+
+let priority = 'Rua ThemistoCles Cavalcanti'
+let lastPriority = 'Rua Felipe Cardoso'
+
+
+for(let i =0; i<destLength; i++) {
+
+  if(priority) {
+    const response = await axios.get(`https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${priority}&key=${REACT_APP_GOOGLE_API_KEY}`)
+    results.push({time:response.data.rows[0]?.elements[0]?.duration?.value,
+      destination: response.data.destination_addresses[0]
+     })
+    delivery = response.data.destination_addresses[0]
+    origin = delivery.normalize('NFD').replace(/[\u0300-\u036f]/g, "")
+    priority = null
+  }
+  if(!priority){
+    const destJoinend = dest.join('|').normalize('NFD').replace(/[\u0300-\u036f]/g, "")
+    const response = await axios.get(`https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${destJoinend}&key=${REACT_APP_GOOGLE_API_KEY}`)
+    for(let u=0 ; u<dest.length; u++){
+     
+     
+      if(!results[i] ) {
+        results.push({time:response.data.rows[0]?.elements[u]?.duration?.value,
+          destination: response.data.destination_addresses[u]
+         })
+         delivery = response.data.destination_addresses[u]
+      }
+        if(results[i]?.time > response.data.rows[0]?.elements[u]?.duration?.value ){
+            delivery = response.data.destination_addresses[u]
+            results[i].time = response.data.rows[0]?.elements[u]?.duration?.value
+            results[i].destination = response.data.destination_addresses[u]
+     }
+    }
+    const index =  response.data.destination_addresses.indexOf(delivery, 0)
+    origin = dest[index].normalize('NFD').replace(/[\u0300-\u036f]/g, "")
+    dest.splice(index,1)
+  }
+
+  if(lastPriority && i == destLength - 1) {
+    const response = await axios.get(`https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${lastPriority}&key=${REACT_APP_GOOGLE_API_KEY}`)
+    results.push({time:response.data.rows[0]?.elements[0]?.duration?.value,
+      destination: response.data.destination_addresses[0]
+     })
+     delivery = response.data.destination_addresses[0]
+  }
+
+}
 
 /*
 if(time1 === null) {
