@@ -6,13 +6,12 @@ class HandleDistanceController {
     async handle(req:Request,res:Response) {
        const data = req.body
 
-       const {pointA, destinationValues} = data
+       const {pointA, destinationValues,lastValues,priorities} = data
 
-     
        const service = new HandleDistancesService()
 
        try{
-        const result = await service.execute({pointA,destinationValues })
+        const result = await service.execute({pointA,destinationValues,lastValues,priorities })
         return res.json(result)
        }catch(err){
            console.log(err)
